@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -68,12 +69,18 @@ public class AirTimesEpisodeProvider(
       return null;
     }
 
-    return libraryManager.FindByPath(info.Path, false)?.DateCreated;
+    return libraryManager.FindByPath(info.Path, false)?.DateCreated
+        ?? GetFileDateAdded(info.Path);
+  }
+
+  private static DateTime? GetFileDateAdded(string path)
+  {
+    return File.Exists(path) ? File.GetCreationTimeUtc(path) : null;
   }
 
   private static DateTime ClampFutureDate(DateTime airDate, DateTime? dateAdded)
   {
-    var maxDate = DateTime.Today;
+    var maxDate = DateTime.UtcNow.Date;
     if (dateAdded.HasValue && dateAdded.Value.Date < maxDate)
     {
       maxDate = dateAdded.Value.Date;
