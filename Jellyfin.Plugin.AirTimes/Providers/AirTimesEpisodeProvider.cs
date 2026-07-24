@@ -11,6 +11,7 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
+using Jellyfin.Plugin.AirTimes.Helpers;
 
 namespace Jellyfin.Plugin.AirTimes.Providers;
 
@@ -55,7 +56,7 @@ public class AirTimesEpisodeProvider(
 
     metadata.Item = new Episode
     {
-      PremiereDate = ClampFutureDate(episodeAirDate.Value, GetDateAdded(info))
+      PremiereDate = PremiereDateHelper.ClampFutureDate(episodeAirDate.Value, GetDateAdded(info))
     };
     metadata.HasMetadata = true;
 
@@ -76,19 +77,6 @@ public class AirTimesEpisodeProvider(
   private static DateTime? GetFileDateAdded(string path)
   {
     return File.Exists(path) ? File.GetCreationTimeUtc(path) : null;
-  }
-
-  private static DateTime ClampFutureDate(DateTime airDate, DateTime? dateAdded)
-  {
-    var maxDate = DateTime.UtcNow.Date;
-    if (dateAdded.HasValue && dateAdded.Value.Date < maxDate)
-    {
-      maxDate = dateAdded.Value.Date;
-    }
-
-    return airDate.Date > maxDate
-      ? maxDate
-      : airDate;
   }
 
   /// <summary>
